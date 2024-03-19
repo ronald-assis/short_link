@@ -1,11 +1,45 @@
 import fastify from "fastify";
-import { z } from 'zod'
-import {sql} from "./lib/postgres";
 import postgres from "postgres";
+import { z } from 'zod'
+
+import {sql} from "./lib/postgres";
+import {redis} from "./lib/redis";
 
 const app = fastify()
 
-app.post('/links', async (request, reply) => {
+app.get('/:code', async (request, reply) => {
+  const getLinkShema = z.object({
+    code: z.string().min(3)
+  })
+
+  const { code } = getLinkShema.parse(request.params)
+
+  const result = await sql`
+    SELECT id, original_url
+    FROM short_links
+    WHERE short_links.code = ${code}
+  `
+
+  if (result.length === 0) {
+    return reply.status(400).send({ message: 'Link not found.' })
+  }
+
+  const link = result[0]
+
+  // await redis.zIncrBy("metrics", 1, String(link.id))
+
+  return reply.redirect(301, link.original_url)
+})
+
+app.get('/api/links', () => {
+  return sql`
+    SELECT *
+    FROM short_links
+    ORDER BY created_at DESC
+  `
+})
+
+app.post('/api/links', async (request, reply) => {
   const createLinkSchema = z.object({
     code: z.string().min(3),
     url: z.string().url()
