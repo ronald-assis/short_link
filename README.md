@@ -32,7 +32,7 @@ or
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3333) with your browser to see the result.
+Open [http://localhost:3333](http://localhost:3333) with your browser to see the result.
 
 <h2>Learn more</h2>
 <h4>Porject resources:</h4>
